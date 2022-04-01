@@ -15,6 +15,10 @@ export const MENU: IMenuItem[] = [
     path: '/'
   },
   {
+    name: 'menusidebar.label.table',
+    path: '/table'
+  },
+  {
     name: 'menusidebar.label.blank',
     path: '/blank'
   },
