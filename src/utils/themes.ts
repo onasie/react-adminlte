@@ -3,6 +3,11 @@ export interface Option {
   label: string;
 }
 
+export const COLOR_VARIANTS: Array<Option> = [
+  {value: '#D9E4F8', label: 'Light Blue'},
+  {value: '#46933D', label: 'Dark Green'}
+];
+
 export const NAVBAR_LIGHT_VARIANTS: Array<Option> = [
   {value: 'navbar-light', label: 'Light'},
   {value: 'navbar-warning navbar-light', label: 'Warning'},
