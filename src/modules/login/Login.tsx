@@ -5,20 +5,29 @@ import {toast} from 'react-toastify';
 import {useFormik} from 'formik';
 import {useTranslation} from 'react-i18next';
 import {loginUser} from '@store/reducers/auth';
-import {Checkbox, Button} from '@components';
-import {faEnvelope, faLock} from '@fortawesome/free-solid-svg-icons';
+import {Button} from '@components';
+import {faEye, faEyeSlash} from '@fortawesome/free-regular-svg-icons';
 import {setWindowClass} from '@app/utils/helpers';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {COLOR_VARIANTS} from '@app/utils/themes';
+import styled from 'styled-components';
 
 import * as Yup from 'yup';
 
 import {Form, InputGroup} from 'react-bootstrap';
 import * as AuthService from '../../services/auth';
 
+const InnerIcon = styled.span`
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  cursor: default;
+`;
+
 const Login = () => {
   const [isAuthLoading, setAuthLoading] = useState(false);
-  const [isGoogleAuthLoading, setGoogleAuthLoading] = useState(false);
-  const [isFacebookAuthLoading, setFacebookAuthLoading] = useState(false);
+  const [passwordShown, setPasswordShown] = useState(false);
   const dispatch = useDispatch();
 
   const navigate = useNavigate();
@@ -38,32 +47,8 @@ const Login = () => {
     }
   };
 
-  const loginByGoogle = async () => {
-    try {
-      setGoogleAuthLoading(true);
-      const token = await AuthService.loginByGoogle();
-      toast.success('Login is succeeded!');
-      setGoogleAuthLoading(false);
-      dispatch(loginUser(token));
-      navigate('/');
-    } catch (error: any) {
-      setGoogleAuthLoading(false);
-      toast.error(error.message || 'Failed');
-    }
-  };
-
-  const loginByFacebook = async () => {
-    try {
-      setFacebookAuthLoading(true);
-      const token = await AuthService.loginByFacebook();
-      toast.success('Login is succeeded!');
-      setFacebookAuthLoading(false);
-      dispatch(loginUser(token));
-      navigate('/');
-    } catch (error: any) {
-      setFacebookAuthLoading(false);
-      toast.error(error.message || 'Failed');
-    }
+  const togglePassword = () => {
+    setPasswordShown(!passwordShown);
   };
 
   const {handleChange, values, handleSubmit, touched, errors} = useFormik({
@@ -87,119 +72,89 @@ const Login = () => {
 
   return (
     <div className="login-box">
-      <div className="card card-outline card-primary">
-        <div className="card-header text-center">
+      <div className="card card-outline">
+        <div className="card-header text-center border-0">
           <Link to="/" className="h1">
-            <b>Admin</b>
-            <span>LTE</span>
+            <b>Logo Nelaru</b>
           </Link>
         </div>
         <div className="card-body">
-          <p className="login-box-msg">{t('login.label.signIn')}</p>
           <form onSubmit={handleSubmit}>
             <div className="mb-3">
-              <InputGroup className="mb-3">
+              <Form.Group className="mb-3" controlId="email">
+                <Form.Label>Email</Form.Label>
                 <Form.Control
-                  id="email"
                   name="email"
                   type="email"
-                  placeholder="Email"
                   onChange={handleChange}
                   value={values.email}
-                  isValid={touched.email && !errors.email}
                   isInvalid={touched.email && !!errors.email}
                 />
                 {touched.email && errors.email ? (
                   <Form.Control.Feedback type="invalid">
                     {errors.email}
                   </Form.Control.Feedback>
-                ) : (
-                  <InputGroup.Append>
-                    <InputGroup.Text>
-                      <FontAwesomeIcon icon={faEnvelope} />
-                    </InputGroup.Text>
-                  </InputGroup.Append>
-                )}
-              </InputGroup>
+                ) : null}
+              </Form.Group>
             </div>
             <div className="mb-3">
-              <InputGroup className="mb-3">
-                <Form.Control
-                  id="password"
-                  name="password"
-                  type="password"
-                  placeholder="Password"
-                  onChange={handleChange}
-                  value={values.password}
-                  isValid={touched.password && !errors.password}
-                  isInvalid={touched.password && !!errors.password}
-                />
-                {touched.password && errors.password ? (
-                  <Form.Control.Feedback type="invalid">
-                    {errors.password}
-                  </Form.Control.Feedback>
-                ) : (
-                  <InputGroup.Append>
-                    <InputGroup.Text>
-                      <FontAwesomeIcon icon={faLock} />
-                    </InputGroup.Text>
-                  </InputGroup.Append>
-                )}
-              </InputGroup>
+              <Form.Group className="mb-3" controlId="password">
+                <Form.Label>Password</Form.Label>
+                <InputGroup>
+                  <Form.Control
+                    name="password"
+                    type={passwordShown ? 'text' : 'password'}
+                    onChange={handleChange}
+                    value={values.password}
+                    isInvalid={touched.password && !!errors.password}
+                    autoComplete="on"
+                  />
+                  {touched.password && errors.password ? (
+                    <Form.Control.Feedback type="invalid">
+                      {errors.password}
+                    </Form.Control.Feedback>
+                  ) : (
+                    <InputGroup.Append>
+                      <InnerIcon onClick={togglePassword}>
+                        <FontAwesomeIcon
+                          icon={passwordShown ? faEyeSlash : faEye}
+                          style={{color: '#6c757d'}}
+                        />
+                      </InnerIcon>
+                    </InputGroup.Append>
+                  )}
+                </InputGroup>
+              </Form.Group>
             </div>
-
-            <div className="row">
-              <div className="col-8">
-                <Checkbox type="icheck" checked={false}>
-                  {t('login.label.rememberMe')}
-                </Checkbox>
-              </div>
-              <div className="col-4">
-                <Button
-                  block
-                  type="submit"
-                  isLoading={isAuthLoading}
-                  disabled={isFacebookAuthLoading || isGoogleAuthLoading}
-                >
-                  {/* @ts-ignore */}
-                  {t('login.button.signIn.label')}
-                </Button>
-              </div>
-            </div>
+            <Button
+              className="mb-3"
+              block
+              type="submit"
+              isLoading={isAuthLoading}
+            >
+              {/* @ts-ignore */}
+              {t('login.button.signIn.label')}
+            </Button>
           </form>
-          <div className="social-auth-links text-center mt-2 mb-3">
-            <Button
-              block
-              icon="facebook"
-              onClick={loginByFacebook}
-              isLoading={isFacebookAuthLoading}
-              disabled={isAuthLoading || isGoogleAuthLoading}
+          <p className="mb-3 text-center">
+            <Link
+              to="/forgot-password"
+              style={{color: COLOR_VARIANTS[1].value}}
             >
-              {/* @ts-ignore */}
-              {t('login.button.signIn.social', {
-                what: 'Facebook'
-              })}
-            </Button>
-            <Button
-              block
-              icon="google"
-              theme="danger"
-              onClick={loginByGoogle}
-              isLoading={isGoogleAuthLoading}
-              disabled={isAuthLoading || isFacebookAuthLoading}
-            >
-              {/* @ts-ignore */}
-              {t('login.button.signIn.social', {what: 'Google'})}
-            </Button>
-          </div>
-          <p className="mb-1">
-            <Link to="/forgot-password">{t('login.label.forgotPass')}</Link>
-          </p>
-          <p className="mb-0">
-            <Link to="/register" className="text-center">
-              {t('login.label.registerNew')}
+              {t('login.label.forgotPass')}
             </Link>
           </p>
+          <Button
+            className="mb-3"
+            block
+            type="submit"
+            theme="light"
+            style={{color: COLOR_VARIANTS[1].value}}
+            onClick={() => navigate('/register')}
+          >
+            {/* @ts-ignore */}
+            {t('login.label.registerNew')}
+          </Button>
         </div>
       </div>
     </div>
